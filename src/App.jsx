@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import CalendarShareSection from "./components/CalendarShareSection.jsx";
 
 const WEEK_DAYS = [
   { label: "월", value: 1 },
@@ -64,6 +65,8 @@ const addDays = (date, days) => {
   return next;
 };
 
+const monthKey = (date) => `${date.getFullYear()}-${date.getMonth()}`;
+
 const getDayLabel = (date) => WEEK_DAYS.find((item) => item.value === date.getDay())?.label ?? "";
 
 const formatDisplayDate = (value) => {
@@ -84,9 +87,15 @@ const formatLongDate = (value) => {
   return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 ${getDayLabel(date)}요일`;
 };
 
-const monthKey = (date) => `${date.getFullYear()}-${date.getMonth()}`;
-
 const getMonthLabel = (date) => `${date.getFullYear()}년 ${date.getMonth() + 1}월`;
+
+const getMonthRangeLabel = (months) => {
+  if (!months.length) return "";
+  if (months.length === 1) return getMonthLabel(months[0]);
+  const first = months[0];
+  const last = months[months.length - 1];
+  return `${getMonthLabel(first)} - ${getMonthLabel(last)}`;
+};
 
 const createMonthGrid = (baseDate) => {
   const year = baseDate.getFullYear();
@@ -95,6 +104,82 @@ const createMonthGrid = (baseDate) => {
   const firstWeekDay = firstDay.getDay();
   const startDate = addDays(firstDay, -firstWeekDay);
   return Array.from({ length: 42 }, (_, index) => addDays(startDate, index));
+};
+
+const formatMissedDateItem = (item) => `${formatDisplayDate(item.date)} ${item.name}`;
+
+const buildShareSummary = (missedDates, totalCount) => {
+  if (!missedDates.length) {
+    return "이번 달은 별도 휴무일 없이 정규 수업 일정에 따라 진행됩니다.";
+  }
+
+  if (missedDates.length === 1) {
+    return `${formatMonthDay(missedDates[0].date)} ${missedDates[0].name}은 휴무이며, 정규 수업일 기준으로 총 ${totalCount}회 수업이 진행됩니다.`;
+  }
+
+  return `휴무일 ${missedDates.length}일을 제외하고 정규 수업일 기준으로 총 ${totalCount}회 수업이 진행됩니다.`;
+};
+
+const buildDetailedNotice = (missedDates) =>
+  missedDates.map((item) => {
+    if (item.source === "auto") {
+      return `${formatMonthDay(item.date)} ${item.name}은 공휴일로 수업이 진행되지 않습니다.`;
+    }
+    return `${formatMonthDay(item.date)} ${item.name}로 수업이 진행되지 않습니다.`;
+  });
+
+const buildMessage = ({ className, missedDates, lastClassDate, totalCount, tone, months }) => {
+  const monthLabel = getMonthRangeLabel(months) || "이번 일정";
+  const detailLines = buildDetailedNotice(missedDates);
+
+  if (tone === "formal") {
+    const lines = [
+      "안녕하세요.",
+      `${className} ${monthLabel} 수업 일정 안내드립니다.`,
+      "",
+    ];
+
+    if (missedDates.length) {
+      lines.push(...detailLines);
+      lines.push(`이후 정규 수업일에 이어서 진행되어 총 ${totalCount}회 수업으로 운영됩니다.`);
+    } else {
+      lines.push(`별도 휴무일 없이 정규 수업일 기준으로 총 ${totalCount}회 수업이 진행됩니다.`);
+    }
+
+    lines.push("");
+    lines.push(`마지막 수업일은 ${formatLongDate(lastClassDate)}입니다.`);
+    lines.push("자세한 일정은 캘린더를 참고 부탁드립니다. 감사합니다.");
+    return lines.join("\n");
+  }
+
+  if (tone === "friendly") {
+    const lines = [`안녕하세요 :) ${className} 수업 일정 안내드려요!`, ""];
+
+    if (missedDates.length) {
+      lines.push(...detailLines);
+      lines.push(`이후 정규 수업일에 이어서 총 ${totalCount}회 수업으로 진행됩니다.`);
+    } else {
+      lines.push(`별도 휴무일 없이 정규 수업일 기준으로 총 ${totalCount}회 수업이 진행됩니다.`);
+    }
+
+    lines.push("");
+    lines.push(`마지막 수업은 ${formatLongDate(lastClassDate)}이에요.`);
+    lines.push("자세한 일정은 캘린더로 함께 확인 부탁드려요 :)");
+    return lines.join("\n");
+  }
+
+  const lines = [`[${className}] 수업 일정 안내`];
+
+  if (missedDates.length) {
+    lines.push(...detailLines);
+    lines.push(`이후 정규 수업일 기준 총 ${totalCount}회 진행`);
+  } else {
+    lines.push(`정규 수업일 기준 총 ${totalCount}회 진행`);
+  }
+
+  lines.push(`마지막 수업: ${formatLongDate(lastClassDate)}`);
+  lines.push("자세한 일정은 캘린더 참고 부탁드립니다.");
+  return lines.join("\n");
 };
 
 const ToggleButton = ({ active, children, onClick }) => (
@@ -189,52 +274,6 @@ const CalendarMonth = ({ monthDate, badgeMap }) => {
   );
 };
 
-const buildMessage = ({ className, missedDates, lastClassDate, totalCount, tone }) => {
-  const scheduleMonth = lastClassDate ? `${lastClassDate.getMonth() + 1}월` : "이번";
-  const intro = `안녕하세요.\n${className} ${scheduleMonth} 수업 일정 안내드립니다.`;
-  const closingFormal = `\n마지막 수업일은 ${formatLongDate(lastClassDate)}입니다.\n자세한 일정은 캘린더를 참고 부탁드립니다. 감사합니다.`;
-  const closingFriendly = `\n마지막 수업은 ${formatLongDate(lastClassDate)}이에요.\n자세한 일정은 캘린더로 함께 확인 부탁드려요 :)`;
-  const closingShort = `\n마지막 수업: ${formatLongDate(lastClassDate)}\n자세한 일정은 캘린더 참고 부탁드립니다.`;
-
-  if (!missedDates.length) {
-    if (tone === "formal") {
-      return `${intro}\n\n공휴일 및 별도 휴무 없이 정규 수업일 기준으로 총 ${totalCount}회 수업이 진행됩니다.${closingFormal}`;
-    }
-    if (tone === "friendly") {
-      return `안녕하세요 :) ${className} 수업 일정 안내드려요!\n\n정규 수업일 기준으로 총 ${totalCount}회 수업이 차례대로 진행됩니다.${closingFriendly}`;
-    }
-    return `[${className}] 수업 일정 안내\n정규 수업일 기준 총 ${totalCount}회 진행${closingShort}`;
-  }
-
-  const holidayLines = missedDates.map((item) => {
-    const holidayWord = item.source === "auto" ? "공휴일" : "휴무일";
-    return `${formatMonthDay(item.date)} ${item.name}은 ${holidayWord}로 수업이 진행되지 않습니다.`;
-  });
-
-  const continuationLine = `이후 정규 수업일에 이어서 진행되어 총 ${totalCount}회 수업으로 운영됩니다.`;
-
-  if (tone === "formal") {
-    return [intro, "", ...holidayLines, continuationLine + closingFormal].join("\n");
-  }
-
-  if (tone === "friendly") {
-    return [
-      `안녕하세요 :) ${className} 수업 일정 안내드려요!`,
-      "",
-      ...holidayLines,
-      `이후 정규 수업일에 이어서 총 ${totalCount}회 수업으로 진행됩니다.`,
-      closingFriendly.trim(),
-    ].join("\n");
-  }
-
-  return [
-    `[${className}] 수업 일정 안내`,
-    ...holidayLines,
-    `이후 정규 수업일로 이어서 총 ${totalCount}회 진행`,
-    closingShort.trim(),
-  ].join("\n");
-};
-
 function App() {
   const [className, setClassName] = useState("");
   const [selectedDays, setSelectedDays] = useState([1, 3]);
@@ -265,12 +304,17 @@ function App() {
 
     sortedHolidays.forEach((date) => {
       if (!map.has(date)) {
-        map.set(date, { date, name: "직접 추가 휴무", source: "manual" });
+        map.set(date, { date, name: "학원 자체 휴무", source: "manual" });
       }
     });
 
     return map;
   }, [is2026Start, sortedHolidays]);
+
+  const selectedDayLabels = useMemo(
+    () => WEEK_DAYS.filter((day) => selectedDays.includes(day.value)).map((day) => day.label),
+    [selectedDays]
+  );
 
   const toggleDay = (value, setter, current) => {
     setter(current.includes(value) ? current.filter((day) => day !== value) : [...current, value].sort((a, b) => a - b));
@@ -327,7 +371,7 @@ function App() {
           missedDates.push({
             date: new Date(cursor),
             dateKey: iso,
-            name: holidayInfo?.name ?? "학원 휴무",
+            name: holidayInfo?.name ?? "학원 자체 휴무",
             source: holidayInfo?.source ?? "manual",
           });
         } else {
@@ -372,12 +416,14 @@ function App() {
       badgeMap[key] = [...new Set([...(badgeMap[key] ?? []), "마지막"])];
     }
 
+    const shortNotice = buildShareSummary(missedDates, classDates.length);
     const message = buildMessage({
       className: className.trim(),
       missedDates,
       lastClassDate,
       totalCount: classDates.length,
       tone,
+      months,
     });
 
     setErrors([]);
@@ -390,6 +436,7 @@ function App() {
       months,
       badgeMap,
       message,
+      shortNotice,
       holidayAutoApplied: is2026Start,
     });
   };
@@ -509,7 +556,7 @@ function App() {
                       key={holiday}
                       className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-700"
                     >
-                      <span>{formatDisplayDate(holiday)} 직접 추가 휴무</span>
+                      <span>{formatDisplayDate(holiday)} 학원 자체 휴무</span>
                       <button
                         type="button"
                         onClick={() => removeHoliday(holiday)}
@@ -528,7 +575,7 @@ function App() {
             </div>
           </SectionCard>
 
-          <SectionCard title="안내문 톤" description="학부모 안내문 문체를 상황에 맞게 선택해 주세요.">
+          <SectionCard title="안내문 톤" description="상황에 맞춰 학부모 안내문 문체를 선택해 주세요.">
             <div className="grid grid-cols-1 gap-2">
               {TONE_OPTIONS.map((option) => (
                 <button
@@ -588,7 +635,7 @@ function App() {
                   />
                   <ResultList
                     title="휴무로 제외된 날짜 목록"
-                    items={result.missedDates.map((item) => `${formatDisplayDate(item.date)} ${item.name}`)}
+                    items={result.missedDates.map((item) => formatMissedDateItem(item))}
                     emptyText="휴무로 제외된 날짜가 없습니다."
                   />
                   <div className="rounded-3xl bg-slate-50 p-4">
@@ -606,7 +653,26 @@ function App() {
                 ))}
               </section>
 
-              <SectionCard title="학부모 안내문" description="복사해서 바로 보낼 수 있게 자동으로 작성했어요.">
+              <CalendarShareSection
+                appName="원장님 수업 캘린더"
+                classNameValue={className.trim()}
+                selectedDayLabels={selectedDayLabels}
+                startDate={startDate}
+                targetCount={result.totalCount}
+                months={result.months}
+                lastClassDate={result.lastClassDate}
+                classDates={result.classDates}
+                missedDates={result.missedDates}
+                badgeMap={result.badgeMap}
+                shortNotice={result.shortNotice}
+                formatDisplayDate={formatDisplayDate}
+                formatLongDate={formatLongDate}
+                getMonthLabel={getMonthLabel}
+                createMonthGrid={createMonthGrid}
+                formatDate={formatDate}
+              />
+
+              <SectionCard title="학부모 안내문" description="상황에 맞는 문장으로 자동 정리했어요. 복사해서 바로 보낼 수 있어요.">
                 <div className="rounded-3xl bg-slate-50 p-4">
                   <pre className="whitespace-pre-wrap break-words text-sm leading-6 text-slate-700">
                     {result.message}
@@ -637,8 +703,8 @@ function App() {
                 ) : null}
 
                 <p className="mt-4 text-xs leading-5 text-slate-400">
-                  본 도구는 수업 일정 계산을 돕는 참고용 도구입니다. 최종 일정은 원장님께서 확인 후 안내해
-                  주세요. 입력한 정보는 별도로 저장되지 않습니다.
+                  본 도구는 수업 일정 계산을 돕는 참고용 도구입니다. 최종 일정은 원장님께서 확인 후 안내해 주세요.
+                  입력한 정보는 별도로 저장되지 않습니다.
                 </p>
               </SectionCard>
             </div>
