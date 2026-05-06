@@ -1,5 +1,6 @@
 const GA_SCRIPT_ID = "ga4-script";
 const CLARITY_SCRIPT_ID = "clarity-script";
+const isDev = import.meta.env.DEV;
 
 const getGaMeasurementId = () => import.meta.env.VITE_GA_MEASUREMENT_ID;
 const getClarityProjectId = () => import.meta.env.VITE_CLARITY_PROJECT_ID;
@@ -29,7 +30,12 @@ export const initGA = () => {
 };
 
 export const trackEvent = (eventName, params = {}) => {
-  if (!getGaMeasurementId() || typeof window === "undefined" || typeof window.gtag !== "function") return;
+  if (isDev) {
+    console.log("[analytics]", eventName, params);
+  }
+
+  if (typeof window === "undefined") return;
+  if (typeof window.gtag !== "function") return;
 
   try {
     window.gtag("event", eventName, params);

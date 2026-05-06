@@ -784,6 +784,10 @@ function App() {
         {activeTab === "parentMessage" ? <ParentMessageAssistant /> : null}
 
         {activeTab === "monthlyTips" ? <MonthlyTips /> : null}
+
+        <footer className="mt-8 pb-4 text-center text-[11px] leading-5 text-slate-400">
+          © 2026 선생님의 비서. 기획·제작 Bokyung Ku. All rights reserved.
+        </footer>
       </div>
 
       {activeTab === "calendar" ? (

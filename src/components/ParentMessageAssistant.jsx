@@ -6,6 +6,7 @@ import {
   PARENT_MESSAGE_TONES,
   generateParentMessage,
 } from "../utils/parentMessageTemplates.js";
+import { trackEvent } from "../utils/analytics.js";
 
 function ParentMessageAssistant() {
   const [context, setContext] = useState(PARENT_MESSAGE_CONTEXTS[0].value);
@@ -18,6 +19,11 @@ function ParentMessageAssistant() {
   };
 
   const handleGenerate = () => {
+    trackEvent("parent_message_generate_clicked", {
+      tab: "parentMessage",
+      subject: "english",
+      situation: context,
+    });
     setMessage(generateParentMessage({ subject: "english", context, tone, values }));
   };
 
@@ -82,8 +88,17 @@ function ParentMessageAssistant() {
       {message ? (
         <section className="rounded-[28px] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
           <textarea value={message} onChange={(event) => setMessage(event.target.value)} className="min-h-[220px] w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-700 outline-none focus:border-slate-900 focus:bg-white" />
-          <CopyButton text={message} className="mt-4" />
-          <FeedbackButton className="mt-3" />
+          <CopyButton
+            text={message}
+            className="mt-4"
+            analyticsEventName="parent_message_copied"
+            analyticsPayload={{
+              tab: "parentMessage",
+              subject: "english",
+              situation: context,
+            }}
+          />
+          <FeedbackButton className="mt-3" analyticsPayload={{ tab: "parentMessage" }} />
         </section>
       ) : null}
     </div>

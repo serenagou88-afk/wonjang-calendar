@@ -8,6 +8,7 @@ import {
   getMonthlyTipCategories,
   getMonthlyTips,
 } from "../data/monthlyTips/index.js";
+import { trackEvent } from "../utils/analytics.js";
 
 function MonthlyTips() {
   const [category, setCategory] = useState(MONTHLY_TIP_CATEGORY_ALL);
@@ -20,6 +21,16 @@ function MonthlyTips() {
   );
   const description = `${Number(month.slice(5, 7))}월 영어 공부방 운영에 바로 쓸 수 있는 문구와 액션을 모았어요.`;
 
+  const handleCategorySelect = (nextCategory) => {
+    trackEvent("monthly_tip_category_selected", {
+      tab: "monthlyTips",
+      category: nextCategory,
+      subject,
+      month,
+    });
+    setCategory(nextCategory);
+  };
+
   return (
     <div className="space-y-4">
       <section className="rounded-[28px] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
@@ -31,7 +42,7 @@ function MonthlyTips() {
             <button
               key={item}
               type="button"
-              onClick={() => setCategory(item)}
+              onClick={() => handleCategorySelect(item)}
               className={`shrink-0 rounded-2xl border px-4 py-3 text-sm font-semibold ${
                 category === item ? "border-slate-900 bg-slate-900 text-white" : "border-slate-200 bg-slate-50 text-slate-600"
               }`}
@@ -53,11 +64,21 @@ function MonthlyTips() {
           <div className="mt-4 rounded-2xl bg-white text-sm leading-6 text-slate-700">
             {tip.copyText}
           </div>
-          <CopyButton text={tip.copyText} className="mt-4" />
+          <CopyButton
+            text={tip.copyText}
+            className="mt-4"
+            analyticsEventName="monthly_tip_copied"
+            analyticsPayload={{
+              tab: "monthlyTips",
+              category: tip.category,
+              subject,
+              month,
+            }}
+          />
         </section>
       ))}
 
-      <FeedbackButton />
+      <FeedbackButton analyticsPayload={{ tab: "monthlyTips", subject, month }} />
     </div>
   );
 }

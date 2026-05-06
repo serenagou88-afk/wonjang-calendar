@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import CopyButton from "./CopyButton.jsx";
 import FeedbackButton from "./FeedbackButton.jsx";
 import { NOTICE_CONTEXTS, generateNoticeMessage } from "../utils/noticeTemplates.js";
+import { trackEvent } from "../utils/analytics.js";
 
 const DEFAULT_VALUES = {
   academyName: "",
@@ -44,6 +45,10 @@ function NoticeAssistant() {
   };
 
   const handleGenerate = () => {
+    trackEvent("notice_generate_clicked", {
+      tab: "notice",
+      situation: context,
+    });
     setMessage(generateNoticeMessage({ subject: "academy", context, values }));
   };
 
@@ -96,8 +101,16 @@ function NoticeAssistant() {
             onChange={(event) => setMessage(event.target.value)}
             className="min-h-[220px] w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-700 outline-none focus:border-slate-900 focus:bg-white"
           />
-          <CopyButton text={message} className="mt-4" />
-          <FeedbackButton className="mt-3" />
+          <CopyButton
+            text={message}
+            className="mt-4"
+            analyticsEventName="notice_copied"
+            analyticsPayload={{
+              tab: "notice",
+              situation: context,
+            }}
+          />
+          <FeedbackButton className="mt-3" analyticsPayload={{ tab: "notice" }} />
         </section>
       ) : null}
     </div>

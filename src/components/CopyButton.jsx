@@ -1,6 +1,7 @@
 import React, { useState } from "react";
+import { trackEvent } from "../utils/analytics.js";
 
-function CopyButton({ text, label = "복사하기", className = "" }) {
+function CopyButton({ text, label = "복사하기", className = "", analyticsEventName = "", analyticsPayload = {} }) {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = async () => {
@@ -8,6 +9,9 @@ function CopyButton({ text, label = "복사하기", className = "" }) {
 
     try {
       await navigator.clipboard.writeText(text);
+      if (analyticsEventName) {
+        trackEvent(analyticsEventName, analyticsPayload);
+      }
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch (error) {
