@@ -6,6 +6,7 @@ import {
   generateMessage,
   getTemplateFields,
 } from "../utils/messageTemplates.js";
+import { trackEvent } from "../utils/analytics.js";
 
 function MessageAssistant({ calendarResult }) {
   const [messageType, setMessageType] = useState(MESSAGE_TEMPLATE_OPTIONS[0].value);
@@ -30,6 +31,7 @@ function MessageAssistant({ calendarResult }) {
   const handleLoadCalendarResult = () => {
     if (!calendarResult) return;
 
+    trackEvent("calendar_result_import_click");
     setMessageType("schedule");
     setFormValues((current) => ({
       ...current,
@@ -37,11 +39,23 @@ function MessageAssistant({ calendarResult }) {
     }));
   };
 
+  const handleTemplateSelect = (templateType) => {
+    trackEvent("message_template_select", {
+      templateType,
+    });
+    setMessageType(templateType);
+  };
+
   const handleRegenerate = () => {
     setMessage(generateMessage({ messageType, tone, values: formValues }));
   };
 
   const handleCopy = async () => {
+    trackEvent("message_copy_click", {
+      templateType: messageType,
+      tone,
+    });
+
     try {
       await navigator.clipboard.writeText(message);
       setCopied(true);
@@ -69,7 +83,7 @@ function MessageAssistant({ calendarResult }) {
                 <button
                   key={option.value}
                   type="button"
-                  onClick={() => setMessageType(option.value)}
+                  onClick={() => handleTemplateSelect(option.value)}
                   className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
                     messageType === option.value
                       ? "border-slate-900 bg-slate-900 text-white"

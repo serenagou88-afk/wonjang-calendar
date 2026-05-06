@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import CalendarShareSection from "./components/CalendarShareSection.jsx";
 import MessageAssistant from "./components/MessageAssistant.jsx";
+import { initClarity, initGA, trackEvent } from "./utils/analytics.js";
 
 const WEEK_DAYS = [
   { label: "월", value: 1 },
@@ -298,6 +299,11 @@ function App() {
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
 
+  useEffect(() => {
+    initGA();
+    initClarity();
+  }, []);
+
   const sortedHolidays = useMemo(
     () => [...holidays].sort((a, b) => parseDate(a) - parseDate(b)),
     [holidays]
@@ -372,6 +378,12 @@ function App() {
   };
 
   const calculateSchedule = () => {
+    trackEvent("calendar_generate_click", {
+      className: className.trim(),
+      selectedDays: selectedDayLabels.join(", "),
+      targetCount,
+    });
+
     const validationErrors = validate();
     if (validationErrors.length) {
       setErrors(validationErrors);
@@ -475,6 +487,10 @@ function App() {
 
   const copyMessage = async () => {
     if (!result?.message) return;
+    trackEvent("copy_basic_notice_click", {
+      className: className.trim(),
+    });
+
     try {
       await navigator.clipboard.writeText(result.message);
       setCopied(true);
@@ -482,6 +498,13 @@ function App() {
     } catch (error) {
       setErrors(["복사에 실패했습니다. 브라우저 권한을 확인해 주세요."]);
     }
+  };
+
+  const handleTabChange = (tab) => {
+    if (tab === "assistant") {
+      trackEvent("message_assistant_open");
+    }
+    setActiveTab(tab);
   };
 
   return (
@@ -498,10 +521,10 @@ function App() {
         </header>
 
         <div className="mb-4 flex gap-2 rounded-[28px] bg-white p-2 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
-          <TabButton active={activeTab === "calendar"} onClick={() => setActiveTab("calendar")}>
+          <TabButton active={activeTab === "calendar"} onClick={() => handleTabChange("calendar")}>
             수업 캘린더
           </TabButton>
-          <TabButton active={activeTab === "assistant"} onClick={() => setActiveTab("assistant")}>
+          <TabButton active={activeTab === "assistant"} onClick={() => handleTabChange("assistant")}>
             원장님 문자비서
           </TabButton>
         </div>

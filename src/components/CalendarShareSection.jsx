@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { toPng } from "html-to-image";
 import CalendarShareCard from "./CalendarShareCard.jsx";
+import { trackEvent } from "../utils/analytics.js";
 
 function CalendarShareSection(props) {
   const cardRef = useRef(null);
@@ -13,6 +14,14 @@ function CalendarShareSection(props) {
     try {
       setIsSaving(true);
       setSaveMessage("");
+      trackEvent("calendar_image_save_click", {
+        className: props.classNameValue,
+        monthLabel: props.months?.length
+          ? props.months.length === 1
+            ? props.getMonthLabel(props.months[0])
+            : `${props.getMonthLabel(props.months[0])} - ${props.getMonthLabel(props.months[props.months.length - 1])}`
+          : "",
+      });
 
       const dataUrl = await toPng(cardRef.current, {
         cacheBust: true,
