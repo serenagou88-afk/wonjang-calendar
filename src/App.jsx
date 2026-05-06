@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import CalendarShareSection from "./components/CalendarShareSection.jsx";
-import MessageAssistant from "./components/MessageAssistant.jsx";
+import MonthlyTips from "./components/MonthlyTips.jsx";
+import NoticeAssistant from "./components/NoticeAssistant.jsx";
+import ParentMessageAssistant from "./components/ParentMessageAssistant.jsx";
 import { initClarity, initGA, trackEvent } from "./utils/analytics.js";
 
 const WEEK_DAYS = [
@@ -501,7 +503,7 @@ function App() {
   };
 
   const handleTabChange = (tab) => {
-    if (tab === "assistant") {
+    if (tab === "parentMessage") {
       trackEvent("message_assistant_open");
     }
     setActiveTab(tab);
@@ -512,20 +514,26 @@ function App() {
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-32 pt-6">
         <header className="mb-5">
           <div className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm">
-            학부모 공지용 일정 생성기
+            공지비서 · 학부모 문자비서 · 월간 꿀팁
           </div>
-          <h1 className="mt-4 text-[30px] font-black tracking-tight text-slate-900">원장님 수업 캘린더</h1>
+          <h1 className="mt-4 text-[30px] font-black tracking-tight text-slate-900">선생님의 비서</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
-            공휴일과 휴무일을 반영해 학부모 공지용 수업 일정을 만들어드려요.
+            선생님이 매일 쓰는 운영 문구를 바로 만들어드려요.
           </p>
         </header>
 
-        <div className="mb-4 flex gap-2 rounded-[28px] bg-white p-2 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
+        <div className="mb-4 grid grid-cols-2 gap-2 rounded-[28px] bg-white p-2 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
           <TabButton active={activeTab === "calendar"} onClick={() => handleTabChange("calendar")}>
-            수업 캘린더
+            보강계산기
           </TabButton>
-          <TabButton active={activeTab === "assistant"} onClick={() => handleTabChange("assistant")}>
-            원장님 문자비서
+          <TabButton active={activeTab === "notice"} onClick={() => handleTabChange("notice")}>
+            공지비서
+          </TabButton>
+          <TabButton active={activeTab === "parentMessage"} onClick={() => handleTabChange("parentMessage")}>
+            학부모 문자비서
+          </TabButton>
+          <TabButton active={activeTab === "monthlyTips"} onClick={() => handleTabChange("monthlyTips")}>
+            월간 꿀팁
           </TabButton>
         </div>
 
@@ -769,9 +777,13 @@ function App() {
               </div>
             ) : null}
           </div>
-        ) : (
-          <MessageAssistant calendarResult={calendarAssistantData} />
-        )}
+        ) : null}
+
+        {activeTab === "notice" ? <NoticeAssistant /> : null}
+
+        {activeTab === "parentMessage" ? <ParentMessageAssistant /> : null}
+
+        {activeTab === "monthlyTips" ? <MonthlyTips /> : null}
       </div>
 
       {activeTab === "calendar" ? (
