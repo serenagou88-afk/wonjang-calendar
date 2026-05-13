@@ -55,8 +55,8 @@ function NoticeAssistant() {
   return (
     <div className="space-y-4">
       <section className="rounded-[28px] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
-        <h2 className="text-lg font-bold text-slate-900">공지비서</h2>
-        <p className="mt-1 text-sm text-slate-500">휴무, 보강, 테스트 같은 공지 문구를 빠르게 만들어요.</p>
+        <h2 className="text-lg font-bold text-slate-900">공지톡</h2>
+        <p className="mt-1 text-sm text-slate-500">휴무, 보강, 테스트 같은 공지 문구를 카톡 톤으로 빠르게 만들어요.</p>
 
         <div className="mt-5 grid grid-cols-2 gap-2">
           {NOTICE_CONTEXTS.map((item) => (

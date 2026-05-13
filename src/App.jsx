@@ -514,7 +514,7 @@ function App() {
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-32 pt-6">
         <header className="mb-5">
           <div className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm">
-            공지비서 · 학부모 문자비서 · 월간 꿀팁
+            공지톡 · 숙제톡 · 리포트
           </div>
           <h1 className="mt-4 text-[30px] font-black tracking-tight text-slate-900">선생님의 비서</h1>
           <p className="mt-2 text-sm leading-6 text-slate-500">
@@ -524,16 +524,16 @@ function App() {
 
         <div className="mb-4 grid grid-cols-2 gap-2 rounded-[28px] bg-white p-2 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
           <TabButton active={activeTab === "calendar"} onClick={() => handleTabChange("calendar")}>
-            보강계산기
+            보강계산
           </TabButton>
           <TabButton active={activeTab === "notice"} onClick={() => handleTabChange("notice")}>
-            공지비서
+            공지톡
           </TabButton>
           <TabButton active={activeTab === "parentMessage"} onClick={() => handleTabChange("parentMessage")}>
-            학부모 문자비서
+            숙제톡
           </TabButton>
           <TabButton active={activeTab === "monthlyTips"} onClick={() => handleTabChange("monthlyTips")}>
-            월간 꿀팁
+            리포트
           </TabButton>
         </div>
 
@@ -783,7 +783,9 @@ function App() {
 
         {activeTab === "parentMessage" ? <ParentMessageAssistant /> : null}
 
-        {activeTab === "monthlyTips" ? <MonthlyTips /> : null}
+        {activeTab === "monthlyTips" ? (
+          <MonthlyTips onGoToHomeworkTalk={() => handleTabChange("parentMessage")} />
+        ) : null}
 
         <footer className="mt-8 pb-4 text-center text-[11px] leading-5 text-slate-400">
           © 2026 선생님의 비서. 기획·제작 Bokyung Ku. All rights reserved.
