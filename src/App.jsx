@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import CalendarShareSection from "./components/CalendarShareSection.jsx";
+import FeedbackButton from "./components/FeedbackButton.jsx";
 import MonthlyTips from "./components/MonthlyTips.jsx";
 import NoticeAssistant from "./components/NoticeAssistant.jsx";
 import ParentMessageAssistant from "./components/ParentMessageAssistant.jsx";
@@ -31,6 +32,7 @@ const KOREAN_HOLIDAYS_2026 = [
   { date: "2026-05-05", name: "어린이날" },
   { date: "2026-05-24", name: "부처님오신날" },
   { date: "2026-05-25", name: "부처님오신날 대체공휴일" },
+  { date: "2026-06-03", name: "제9회 전국동시지방선거" },
   { date: "2026-06-06", name: "현충일" },
   { date: "2026-08-15", name: "광복절" },
   { date: "2026-08-17", name: "광복절 대체공휴일" },
@@ -805,6 +807,8 @@ function App() {
           </div>
         </div>
       ) : null}
+
+      <FeedbackButton analyticsPayload={{ tab: activeTab }} />
     </div>
   );
 }

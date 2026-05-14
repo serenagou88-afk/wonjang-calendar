@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import CopyButton from "./CopyButton.jsx";
-import FeedbackButton from "./FeedbackButton.jsx";
 import {
   PARENT_MESSAGE_TONES,
   generateParentMessage,
@@ -176,7 +175,6 @@ function ParentMessageAssistant() {
                 situation: DEFAULT_CONTEXT,
               }}
             />
-            <FeedbackButton className="mt-3" analyticsPayload={{ tab: "parentMessage" }} />
           </>
         ) : (
           <div className="rounded-3xl bg-slate-50 px-4 py-10 text-center text-sm leading-6 text-slate-400">

@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import CopyButton from "./CopyButton.jsx";
-import FeedbackButton from "./FeedbackButton.jsx";
 import { NOTICE_CONTEXTS, generateNoticeMessage } from "../utils/noticeTemplates.js";
 import { trackEvent } from "../utils/analytics.js";
 
@@ -110,7 +109,6 @@ function NoticeAssistant() {
               situation: context,
             }}
           />
-          <FeedbackButton className="mt-3" analyticsPayload={{ tab: "notice" }} />
         </section>
       ) : null}
     </div>

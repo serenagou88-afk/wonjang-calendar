@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import CopyButton from "./CopyButton.jsx";
-import FeedbackButton from "./FeedbackButton.jsx";
 
 const STORAGE_KEY_STUDENT = "teacher_report_student";
 
@@ -305,7 +304,6 @@ function MonthlyTips({ onGoToHomeworkTalk }) {
                 period: values.period,
               }}
             />
-            <FeedbackButton className="mt-3" analyticsPayload={{ tab: "monthlyTips" }} />
           </>
         ) : (
           <div className="rounded-3xl bg-slate-50 px-4 py-10 text-center text-sm leading-6 text-slate-400">
