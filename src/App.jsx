@@ -518,7 +518,10 @@ function App() {
           <div className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm">
             공지톡 · 숙제톡 · 리포트
           </div>
-          <h1 className="mt-4 text-[30px] font-black tracking-tight text-slate-900">선생님의 비서</h1>
+          <div className="mt-4 flex items-center justify-between gap-3">
+            <h1 className="text-[30px] font-black tracking-tight text-slate-900">선생님의 비서</h1>
+            <FeedbackButton analyticsPayload={{ location: "header", tab: activeTab }} />
+          </div>
           <p className="mt-2 text-sm leading-6 text-slate-500">
             선생님이 매일 쓰는 운영 문구를 바로 만들어드려요.
           </p>
@@ -807,8 +810,6 @@ function App() {
           </div>
         </div>
       ) : null}
-
-      <FeedbackButton analyticsPayload={{ tab: activeTab }} />
     </div>
   );
 }
