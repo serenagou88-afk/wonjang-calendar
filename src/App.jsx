@@ -5,6 +5,7 @@ import MonthlyTips from "./components/MonthlyTips.jsx";
 import NoticeAssistant from "./components/NoticeAssistant.jsx";
 import ParentMessageAssistant from "./components/ParentMessageAssistant.jsx";
 import { initClarity, initGA, trackEvent } from "./utils/analytics.js";
+import { sendTelegramAlert } from "./utils/telegram.js";
 
 const WEEK_DAYS = [
   { label: "월", value: 1 },
@@ -302,10 +303,20 @@ function App() {
   const [errors, setErrors] = useState([]);
   const [result, setResult] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [errorPopup, setErrorPopup] = useState(false);
 
   useEffect(() => {
     initGA();
     initClarity();
+    window.onerror = (message, source, lineno) => {
+  sendTelegramAlert(`오류: ${message}\n위치: ${source} ${lineno}번째 줄`);
+  setErrorPopup(true);
+  return false;
+};
+window.onunhandledrejection = (event) => {
+  sendTelegramAlert(`처리 안 된 오류: ${event.reason}`);
+  setErrorPopup(true);
+};
   }, []);
 
   const sortedHolidays = useMemo(
@@ -513,6 +524,24 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#f4f6f8] text-slate-900">
+      {errorPopup && (
+  <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/30 px-4 pb-8">
+    <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-xl">
+      <div className="text-lg font-bold text-slate-900">앗, 오류가 났어요 😢</div>
+      <p className="mt-2 text-sm text-slate-500">불편하셨나요? 어떤 상황이었는지 한 줄만 알려주시면 바로 고칠게요!</p>
+      <div className="mt-4 flex gap-3">
+        <FeedbackButton analyticsPayload={{ location: "error_popup" }} />
+        <button
+          type="button"
+          onClick={() => setErrorPopup(false)}
+          className="flex-1 rounded-2xl border border-slate-200 py-3 text-sm font-semibold text-slate-600"
+        >
+          괜찮아요
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       <div className="mx-auto flex min-h-screen w-full max-w-md flex-col px-4 pb-32 pt-6">
         <header className="mb-5">
           <div className="inline-flex rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-500 shadow-sm">
