@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import CopyButton from "./CopyButton.jsx";
 import { NOTICE_CONTEXTS, generateNoticeMessage } from "../utils/noticeTemplates.js";
 import { trackEvent } from "../utils/analytics.js";
+const STORAGE_KEY = "serena_academy_name";
 
 const DEFAULT_VALUES = {
   academyName: "",
@@ -34,11 +35,21 @@ const RESCHEDULE_FIELDS = [
 ];
 
 function NoticeAssistant() {
+function NoticeAssistant() {
   const [context, setContext] = useState(NOTICE_CONTEXTS[0].value);
-  const [values, setValues] = useState(DEFAULT_VALUES);
+  const [values, setValues] = useState(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? { ...DEFAULT_VALUES, academyName: saved } : DEFAULT_VALUES;
+  });
   const [message, setMessage] = useState("");
   const fields = context === "reschedule" ? RESCHEDULE_FIELDS : DEFAULT_FIELDS;
 
+useEffect(() => {
+    if (values.academyName) {
+      localStorage.setItem(STORAGE_KEY, values.academyName);
+    }
+  }, [values.academyName]);
+  
   const updateValue = (name, value) => {
     setValues((current) => ({ ...current, [name]: value }));
   };
