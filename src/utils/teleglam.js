@@ -1,4 +1,4 @@
-const BOT_TOKEN = '8912324839:AAEV3h1mhg0J9WB9zxgGTDGwSdwCnw1geWw';
+const BOT_TOKEN = '8912324839:AAHm2Y9OCHrlo9ZeDQ81SK2G27MrIsYeZhs';
 const CHAT_ID = '8933511006';
 
 export const sendTelegramAlert = async (message) => {
