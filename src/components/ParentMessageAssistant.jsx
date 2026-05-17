@@ -20,14 +20,8 @@ const INITIAL_VALUES = {
 
 const STORAGE_KEYS = {
   academyName: "teacher_school_name",
-  studentName: "teacher_student_name",
+  studentList: "teacher_student_list",
 };
-
-const BASIC_FIELDS = [
-  ["studentName", "학생 이름", "예: 민준"],
-  ["todayProgress", "오늘 진도", "예: Phonics Unit 3"],
-  ["basicHomework", "숙제", "예: 음원 듣기 2회"],
-];
 
 const ADVANCED_FIELDS = [
   ["academyName", "학원명", "예: 루나 영어공부방"],
@@ -40,18 +34,49 @@ function ParentMessageAssistant() {
   const [values, setValues] = useState(INITIAL_VALUES);
   const [showAdvanced, setShowAdvanced] = useState(false);
 
+  const [studentList, setStudentList] = useState([]);
+  const [newStudent, setNewStudent] = useState("");
+  const [showManage, setShowManage] = useState(false);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
       const academyName = window.localStorage.getItem(STORAGE_KEYS.academyName) ?? "";
-      const studentName = window.localStorage.getItem(STORAGE_KEYS.studentName) ?? "";
-      if (academyName || studentName) {
-        setValues((current) => ({ ...current, academyName, studentName }));
+      if (academyName) {
+        setValues((current) => ({ ...current, academyName }));
+      }
+      const savedList = window.localStorage.getItem(STORAGE_KEYS.studentList);
+      if (savedList) {
+        setStudentList(JSON.parse(savedList));
       }
     } catch (error) {
       // localStorage 접근 실패(시크릿 모드 등) 시 조용히 무시
     }
   }, []);
+
+  const persistStudentList = (list) => {
+    setStudentList(list);
+    try {
+      window.localStorage.setItem(STORAGE_KEYS.studentList, JSON.stringify(list));
+    } catch (error) {
+      // 저장 실패는 조용히 무시
+    }
+  };
+
+  const addStudent = () => {
+    const name = newStudent.trim();
+    if (!name) return;
+    if (studentList.includes(name)) {
+      setNewStudent("");
+      return;
+    }
+    persistStudentList([...studentList, name]);
+    setNewStudent("");
+  };
+
+  const removeStudent = (name) => {
+    persistStudentList(studentList.filter((s) => s !== name));
+  };
 
   const updateValue = (name, value) => {
     setValues((current) => ({ ...current, [name]: value }));
@@ -124,7 +149,100 @@ function ParentMessageAssistant() {
 
       <section className="rounded-[28px] bg-white p-5 shadow-[0_12px_40px_rgba(15,23,42,0.06)]">
         <div className="space-y-4">
-          {BASIC_FIELDS.map(renderField)}
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-sm font-semibold text-slate-700">학생 이름</span>
+              <button
+                type="button"
+                onClick={() => setShowManage((current) => !current)}
+                className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600"
+              >
+                {showManage ? "닫기" : "명단 관리"}
+              </button>
+            </div>
+
+            {studentList.length > 0 ? (
+              <select
+                value={values.studentName}
+                onChange={(event) => updateValue("studentName", event.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base outline-none focus:border-slate-900 focus:bg-white"
+              >
+                <option value="">학생 선택</option>
+                {studentList.map((name) => (
+                  <option key={name} value={name}>{name}</option>
+                ))}
+              </select>
+            ) : (
+              <div className="rounded-2xl bg-slate-50 px-4 py-4 text-sm text-slate-400">
+                아직 등록된 학생이 없어요. "명단 관리"에서 추가해주세요.
+              </div>
+            )}
+
+            {showManage ? (
+              <div className="mt-3 rounded-2xl bg-slate-50 p-4">
+                <div className="flex gap-2">
+                  <input
+                    value={newStudent}
+                    onChange={(event) => setNewStudent(event.target.value)}
+                    onKeyDown={(event) => { if (event.key === "Enter") addStudent(); }}
+                    placeholder="학생 이름 입력 후 추가"
+                    className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-3 text-sm outline-none focus:border-slate-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={addStudent}
+                    className="rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
+                  >
+                    추가
+                  </button>
+                </div>
+
+                <div className="mt-3 space-y-2">
+                  {studentList.length > 0 ? (
+                    studentList.map((name) => (
+                      <div
+                        key={name}
+                        className="flex items-center justify-between rounded-xl bg-white px-3 py-2 text-sm text-slate-700"
+                      >
+                        <span>{name}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeStudent(name)}
+                          className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-rose-500"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="px-1 py-2 text-xs text-slate-400">
+                      등록된 학생이 없습니다.
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-slate-700">오늘 진도</span>
+            <input
+              value={values.todayProgress}
+              onChange={(event) => updateValue("todayProgress", event.target.value)}
+              placeholder="예: Phonics Unit 3"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base outline-none focus:border-slate-900 focus:bg-white"
+            />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-slate-700">숙제</span>
+            <input
+              value={values.basicHomework}
+              onChange={(event) => updateValue("basicHomework", event.target.value)}
+              placeholder="예: 음원 듣기 2회"
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base outline-none focus:border-slate-900 focus:bg-white"
+            />
+          </label>
 
           <label className="block">
             <span className="mb-2 block text-sm font-semibold text-slate-700">한 줄 메모</span>
